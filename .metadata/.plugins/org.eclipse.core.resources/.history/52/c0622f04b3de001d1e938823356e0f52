@@ -1,0 +1,33 @@
+public class Main {
+    public static void main(String[] args) {
+    	long start = System.currentTimeMillis();
+    	int i = 1;
+    	
+        // Create and start threads every 2 seconds
+        while (true) {
+        	try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	newThread(i);
+            i++;
+        }
+    }
+    
+    public static void newThread(int i) {
+    	Bridge bridge = new Bridge();
+        String name;
+        long now;
+        
+    	Direction direction = Math.random() < 0.5 ? Direction.NORTH : Direction.SOUTH;
+    	name = "Thread "+i;
+        Th thread = new Th(name, bridge, direction, start);
+        String flag = thread.getFlag();
+        now = System.currentTimeMillis();
+        double t = (now - start)/1000;
+        System.out.println(t+ ". new thread. " + thread.getName() + " " + flag);
+        thread.start();
+    }
+}

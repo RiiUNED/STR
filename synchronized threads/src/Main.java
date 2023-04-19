@@ -6,20 +6,20 @@ public class Main {
         long start = System.currentTimeMillis();
         long now;
 
-        // Create and start threads every 2 seconds
+        // Crea un hilo cada 2 segundos
         while (true) {
         	try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
         	Direction direction = Math.random() < 0.5 ? Direction.NORTH : Direction.SOUTH;
         	name = "Thread "+i;
-            Thread thread = new Th(name, bridge, direction, start);
+            Th thread = new Th(name, bridge, direction, start);
+            String flag = thread.getFlag();
             now = System.currentTimeMillis();
             double t = (now - start)/1000;
-            System.out.println(t+ ". new thread. " + thread.getName());
+            System.out.println(t+ ". nuevo hilo. " + thread.getName() + " " + flag);
             thread.start();
             i++;
         }

@@ -1,0 +1,77 @@
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class Bridge {
+    private int count = 0;
+    private Direction direction = null;
+    
+    private final ReentrantLock lockcounter = new ReentrantLock();
+    private final ReentrantLock lockcondN = new ReentrantLock();
+    private final Condition conditionN = lockcondN.newCondition();
+    private final ReentrantLock lockcondS = new ReentrantLock();
+    private final Condition conditionS = lockcondS.newCondition();
+
+    public void cross(Th thread) throws InterruptedException {
+        double t = getTime(thread);
+        System.out.println(t+ " " + thread.getName()+thread.getFlag()+" try to cross the bridge");
+        lockcond.lock(); // Adquirir el bloqueo
+    	if(direction!=null) {
+    		try {
+        	    while (count!=0 || direction!=thread.getDir()) {
+        	        condition.await(); // Esperar a que se cumpla la condición
+        	    }
+        	    // Acción a realizar cuando se cumpla la condición
+        	} finally {
+        	    lockcond.unlock(); // Liberar el bloqueo
+        	}
+    	}
+    	direction = thread.getDir();
+        countUp();
+        t = getTime(thread);
+		System.out.println(t + " " + thread.getName()+thread.getFlag() +" begin to cross the bridge");
+		System.out.println("count: " +  count);
+		cross();
+    	t = getTime(thread);
+    	System.out.println(t+ " " + thread.getName()+thread.getFlag() +" has crossed the bridge");
+    	countDown();
+    	System.out.println("count: " +  count);
+    	lockcond.lock();
+    	try {
+    		if(count==0) {
+    			direction = null;
+    			condition.signal(); // Hace el signal en el primer hilo en espera en la cola
+    		}
+    	} finally {
+    	    lockcond.unlock(); // Libera el bloqueo asociado al objeto de bloqueo
+    	}
+    	
+    }
+    
+    private void countUp() {
+    	lockcounter.lock();
+        try {
+        	count++;
+        } finally {
+        	lockcounter.unlock();
+        }
+    }
+    
+    private void countDown() {
+    	lockcounter.lock();
+    	try {
+        	count--;
+        } finally {
+        	lockcounter.unlock();
+        }
+    }
+    
+    private double getTime(Th thread) {
+    	long now = System.currentTimeMillis();
+        double t = (now - thread.getStart())/1000;
+        return t;
+    }
+    
+    private static void cross() throws InterruptedException {
+    	Th.sleep(5000);
+    }
+}

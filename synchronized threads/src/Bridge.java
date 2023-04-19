@@ -6,43 +6,92 @@ public class Bridge {
     private Direction direction = null;
     
     private final ReentrantLock lockcounter = new ReentrantLock();
-    private final ReentrantLock lockcond = new ReentrantLock();
-    private final Condition condition = lockcond.newCondition();
+    private final ReentrantLock lockcondN = new ReentrantLock();
+    private final Condition conditionN = lockcondN.newCondition();
+    private final ReentrantLock lockcondS = new ReentrantLock();
+    private final Condition conditionS = lockcondS.newCondition();
 
     public void cross(Th thread) throws InterruptedException {
         double t = getTime(thread);
-        System.out.println(t+ " " + thread.getName()+" try to cross the bridge");
-        lockcond.lock(); // Adquirir el bloqueo
-    	try {
-    	    while (count != 0) {
-    	        condition.await(); // Esperar a que se cumpla la condición
-    	    }
-    	    // Acción a realizar cuando se cumpla la condición
-    	} finally {
-    	    lockcond.unlock(); // Liberar el bloqueo
-    	}
-        countUp();
+        System.out.println(t+ " " + thread.getName()+thread.getFlag()+" intenta cruzar el puente");
+        
+        if(direction==null) {
+        	direction = thread.getDir();
+        } else {
+        	if(direction!=thread.getDir()) {
+        		if(direction==Direction.NORTH) {
+        			lockcondS.lock();
+        			try {
+        				while(direction==Direction.NORTH) {
+        					System.out.println(t+ " " + thread.getName()+thread.getFlag()+" espera");
+        					conditionS.await();
+            			}
+        			} finally {
+        				lockcondS.unlock();
+        			}
+        		} else {
+        			lockcondN.lock();
+        			try {
+        				while(direction==Direction.SOUTH) {
+        					System.out.println(t+ " " + thread.getName()+thread.getFlag()+" espera");
+        					conditionN.await();
+            			}
+        			} finally {
+        				lockcondN.unlock();
+        			}
+        		}
+        	}
+        }
         t = getTime(thread);
-		System.out.println(t + " " + thread.getName() +" begin to cross the bridge");
-		System.out.println("count: " +  count);
+        System.out.println(t + " " + thread.getName()+thread.getFlag() +" empieza a cruzar el puente.");
+        countUp();
+		
 		cross();
     	t = getTime(thread);
-    	System.out.println(t+ " " + thread.getName() +" has crossed the bridge");
+    	System.out.println(t+ " " + thread.getName()+thread.getFlag() +" ha cruzado el puente.");
     	countDown();
-    	System.out.println("count: " +  count);
-    	lockcond.lock();
-    	try {
-    	    condition.signal(); // Hace el signal en el primer hilo en espera en la cola
-    	} finally {
-    	    lockcond.unlock(); // Libera el bloqueo asociado al objeto de bloqueo
-    	}
     	
+    	if(freeBridge()) {
+    	    if(thread.getDir()==Direction.NORTH) {
+    	        direction = Direction.SOUTH;
+    	        lockcondS.lock();
+    	        try {
+    	            synchronized (conditionS) {
+    	                conditionS.signalAll();
+    	            }
+    	        } finally {
+    	            lockcondS.unlock();
+    	        }
+    	    } else {
+    	        direction = Direction.NORTH;
+    	        lockcondN.lock();
+    	        try {
+    	            synchronized (conditionN) {
+    	                conditionN.signalAll();
+    	            }
+    	        } finally {
+    	            lockcondN.unlock();
+    	        }
+    	    }
+    	}
+    }
+    
+    private boolean freeBridge() {
+    	boolean free = false;
+    	lockcounter.lock();
+        try {
+        	if(count==0) {free=true;}
+        } finally {
+        	lockcounter.unlock();
+        }
+        return free;
     }
     
     private void countUp() {
     	lockcounter.lock();
         try {
         	count++;
+        	System.out.println("hilos cruzando: " +  count);
         } finally {
         	lockcounter.unlock();
         }
@@ -52,6 +101,7 @@ public class Bridge {
     	lockcounter.lock();
     	try {
         	count--;
+        	System.out.println("hilos cruzando: " +  count);
         } finally {
         	lockcounter.unlock();
         }
