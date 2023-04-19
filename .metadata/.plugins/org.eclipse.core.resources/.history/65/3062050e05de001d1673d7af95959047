@@ -1,0 +1,16 @@
+public class Main {
+    public static void main(String[] args) {
+        Bridge bridge = new Bridge();
+        String name;
+        int i = 1;
+
+        // Create and start threads every second
+        while (true) {
+        	Direction direction = Math.random() < 0.5 ? Direction.NORTH : Direction.SOUTH;
+        	name = "Thread "+i;
+            Thread thread = new Thread("Thread " + i, bridge, direction);
+            thread.start();
+            i++;
+        }
+    }
+}

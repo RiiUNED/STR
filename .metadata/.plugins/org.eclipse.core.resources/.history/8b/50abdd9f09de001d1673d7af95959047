@@ -1,0 +1,64 @@
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+public class Bridge {
+    private int count = 0;
+    private Direction direction = null;
+    private final ReentrantLock lock = new ReentrantLock();
+    private final BlockingQueue<String> queue = new LinkedBlockingQueue<>();
+
+    public void cross(String name, Direction threadDirection) {
+        if (count == 0) {
+            direction = threadDirection;
+        }
+        while (count > 0 && direction != threadDirection) {
+            queue.add(name);
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        lock.lock();
+        try {
+            count++;
+        } finally {
+            lock.unlock();
+        }
+        System.out.println(name + " is crossing the bridge from " + threadDirection + ".");
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        lock.lock();
+        try {
+            count--;
+            if (count == 0) {
+                direction = null;
+                while (!queue.isEmpty()) {
+                    String nextName = queue.poll();
+                    Direction nextDirection = threadDirection.equals(Direction.NORTH) ? Direction.SOUTH : Direction.NORTH;
+                    if (count == 0) {
+                        direction = nextDirection;
+                    }
+                    if (direction == nextDirection) {
+                        count++;
+                        System.out.println(nextName + " is crossing the bridge from " + nextDirection + ".");
+                        Thread.sleep(5000);
+                        System.out.println(nextName + " has crossed the bridge from " + nextDirection + ".");
+                        count--;
+                        if (count == 0) {
+                            direction = null;
+                        }
+                    }
+                }
+                notifyAll();
+            }
+        } finally {
+            lock.unlock();
+        }
+        System.out.println(name + " has crossed the bridge from " + threadDirection + ".");
+    }
+}

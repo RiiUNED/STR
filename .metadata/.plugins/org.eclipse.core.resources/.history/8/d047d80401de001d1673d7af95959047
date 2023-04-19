@@ -1,0 +1,20 @@
+
+public class Main {
+
+	public static void main(String[] args) {
+		Bridge bridge = new Bridge(); // Bridge instance
+		int i = 1;
+
+		// Create and start threads every second
+		while (true) {
+			Thread thread = new Th("Thread " + i, bridge);
+			thread.start();
+			i++;
+			try {
+				Thread.sleep(1000); // Wait 1 second
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+}

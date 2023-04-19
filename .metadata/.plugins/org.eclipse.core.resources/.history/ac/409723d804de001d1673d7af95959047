@@ -1,0 +1,22 @@
+public class Main {
+    public static void main(String[] args) {
+        Bridge bridge = new Bridge();
+        int i = 1;
+
+        // Create and start threads every second
+        while (true) {
+            Thread thread = new Thread(() -> {
+                String name = Thread.currentThread().getName();
+                Direction direction = Math.random() < 0.5 ? Direction.NORTH : Direction.SOUTH;
+                try {
+					bridge.cross(name, direction);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }, "Thread " + i);
+            thread.start();
+            i++;
+        }
+    }
+}

@@ -1,0 +1,16 @@
+
+class Th extends Thread {
+    private String name;
+    private String direction;
+    private Bridge bridge;
+
+    public Thread(String name, Bridge bridge) {
+        this.name = name;
+        this.bridge = bridge;
+        this.direction = name.split(" ")[0]; // extract direction from thread name
+    }
+
+    public void run() {
+        bridge.cross(name, direction);
+    }
+}

@@ -1,0 +1,58 @@
+
+public class Main {
+
+	public static void main(String[] args) {
+		Puente puente = new Puente(); // Instancia del puente
+        int i = 1;
+
+        // Crear e iniciar hilos cada segundo
+        while (true) {
+            Thread hilo = new Hilo("Hilo " + i, puente);
+            hilo.start();
+            i++;
+            try {
+                Thread.sleep(1000); // Espera 1 segundo
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+class Puente {
+    private boolean ocupado = false;
+
+    public synchronized void cruzar(String nombre) {
+        while (ocupado) { // Si el puente está ocupado, espera
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println(nombre + " está cruzando el puente.");
+        ocupado = true; // Ocupar el puente
+        try {
+            Thread.sleep(5000); // Cruzar el puente
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println(nombre + " ha cruzado el puente.");
+        ocupado = false; // Liberar el puente
+        notifyAll(); // Despertar a los hilos en espera
+    }
+}
+
+class Hilo extends Thread {
+    private String nombre;
+    private Puente puente;
+
+    public Hilo(String nombre, Puente puente) {
+        this.nombre = nombre;
+        this.puente = puente;
+    }
+
+    public void run() {
+        puente.cruzar(nombre);
+    }
+}

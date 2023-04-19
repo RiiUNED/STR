@@ -1,0 +1,45 @@
+import java.util.concurrent.locks.ReentrantLock;
+
+public class Bridge {
+    private int count = 0;
+    private Direction direction = null;
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public void cross(String name, Direction threadDirection) {
+    	while (count > 0 && direction != threadDirection) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (count == 0) {
+            direction = threadDirection;
+        }
+
+        lock.lock();
+        count++;
+        lock.unlock();
+
+        System.out.println(name + " is crossing the bridge from " + threadDirection + ".");
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(name + " has crossed the bridge from " + threadDirection + ".");
+
+        lock.lock();
+        count++;
+        lock.unlock();
+
+        if (count == 0) {
+            direction = null;
+        }
+
+        notifyAll();
+    }
+}

@@ -1,0 +1,54 @@
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+public class Bridge {
+    private int count = 0;
+    private Direction direction = null;
+    
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
+
+    public void cross(Th thread) throws InterruptedException {
+        double t = getTime(thread);
+        System.out.println(t+ " " + thread.getName()+" try to cross the bridge");
+        while (count != 0) {
+        	condition.await();
+        }
+        countUp();
+        t = getTime(thread);
+		System.out.println(t + " " + thread.getName() +" begin to cross the bridge");
+		System.out.println("count: " +  count);
+    	thread.sleep(5000);
+    	t = getTime(thread);
+    	System.out.println(t+ " " + thread.getName() +" has crossed the bridge");
+    	countDown();
+    	System.out.println("count: " +  count);
+    	condition.signal();
+    }
+    
+    private void countUp() {
+    	lock.lock();
+        try {
+        	count++;
+        } finally {
+        	lock.unlock();
+        }
+    }
+    
+    private void countDown() {
+    	lock.lock();
+    	try {
+        	count--;
+        } finally {
+        	lock.unlock();
+        }
+    }
+    
+    private double getTime(Th thread) {
+    	long now = System.currentTimeMillis();
+        double t = (now - thread.getStart())/1000;
+        return t;
+    }
+}
